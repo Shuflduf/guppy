@@ -1,6 +1,6 @@
 mod gemini;
-mod windows;
 mod gui;
+mod windows;
 
 #[tokio::main]
 async fn main() {

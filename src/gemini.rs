@@ -1,8 +1,9 @@
 use gemini_rs::types::Schema;
 
-use crate::windows::{set_theme, Theme};
+use crate::windows::{Theme, set_theme};
 
 pub async fn prompt(input: &str) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Prompting: {}", input);
     let response_schema = Schema {
         schema_type: Some(gemini_rs::types::Type::String),
         enum_values: Some(vec!["light".to_string(), "dark".to_string()]),

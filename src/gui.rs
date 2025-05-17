@@ -8,6 +8,7 @@ pub async fn spawn() -> eframe::Result {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([320.0, 240.0])
             .with_decorations(false),
+        centered: true,
         ..Default::default()
     };
 
@@ -26,7 +27,6 @@ pub async fn spawn() -> eframe::Result {
                 if query_edit.lost_focus() {
                     query_final = query_current.clone();
                     query_current.clear();
-                    println!("Name changed to: {}", query_final);
                     let query = query_final.clone();
                     tokio::spawn(async move {
                         if let Err(e) = prompt(&query).await {
@@ -39,4 +39,3 @@ pub async fn spawn() -> eframe::Result {
         });
     })
 }
-
