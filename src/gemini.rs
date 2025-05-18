@@ -3,7 +3,6 @@ use serde_json::json;
 
 use crate::windows::{self, Theme};
 
-
 pub async fn prompt(input: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("Prompting: {}", input);
     let function_decs = vec![
@@ -24,7 +23,7 @@ pub async fn prompt(input: &str) -> Result<(), Box<dyn std::error::Error>> {
         },
         FunctionDeclaration {
             name: "open_app".to_string(),
-            description: "Open an app".to_string(),
+            description: "Open an app using the name of the exe on windows.".to_string(),
             parameters: json!({
                 "type": "object",
                 "properties": {
@@ -33,6 +32,17 @@ pub async fn prompt(input: &str) -> Result<(), Box<dyn std::error::Error>> {
                 "required": ["app_id"]
             }),
         },
+        FunctionDeclaration {
+            name: "open_website".to_string(),
+            description: "Open a website in the default browser. Always include https:// in the URL. It can also understand paths, and GitHub repositories".to_string(),
+            parameters: json!({
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string", "description": "The URL to open" }
+                },
+                "required": ["url"]
+            }),
+        }
     ];
     let tools = vec![Tools {
         function_declarations: function_decs,
@@ -60,12 +70,21 @@ pub async fn prompt(input: &str) -> Result<(), Box<dyn std::error::Error>> {
                 "set_theme" => {
                     let theme = func.args["theme"].as_str().unwrap();
                     println!("Setting theme to {}", theme);
-                    windows::set_theme(if theme == "light" { Theme::Light } else { Theme::Dark })?;
+                    windows::set_theme(if theme == "light" {
+                        Theme::Light
+                    } else {
+                        Theme::Dark
+                    })?;
                 }
                 "open_app" => {
                     let app_id = func.args["app_id"].as_str().unwrap();
                     println!("Opening app {}", app_id);
                     windows::open_app(app_id)?;
+                }
+                "open_website" => {
+                    let url = func.args["url"].as_str().unwrap();
+                    println!("Opening website {}", url);
+                    windows::open_app(url)?;
                 }
                 _ => eprintln!("Unknown function: {}", func.name),
             },

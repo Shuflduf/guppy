@@ -28,10 +28,10 @@ pub fn set_theme(theme: Theme) -> io::Result<()> {
     Ok(())
 }
 
-
+// this function works for urls as well idk
 pub fn open_app(app_id: &str) -> io::Result<()> {
     Command::new("cmd")
         .args(["/C", "start", "", app_id])
-        .spawn()?; // Use spawn to not wait for the app to finish
+        .spawn()?;
     Ok(())
 }
