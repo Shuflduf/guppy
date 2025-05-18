@@ -1,35 +1,92 @@
-use gemini_rs::types::Schema;
+use gemini_rs::types::{FunctionDeclaration, Tools};
+use serde_json::json;
 
-use crate::windows::{Theme, set_theme};
+use crate::windows::{self, Theme};
+
 
 pub async fn prompt(input: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("Prompting: {}", input);
-    let response_schema = Schema {
-        schema_type: Some(gemini_rs::types::Type::String),
-        enum_values: Some(vec!["light".to_string(), "dark".to_string()]),
-        ..Default::default()
-    };
+    let function_decs = vec![
+        FunctionDeclaration {
+            name: "set_theme".to_string(),
+            description: "Set the theme of Windows".to_string(),
+            parameters: json!({
+                "type": "object",
+                "properties": {
+                    "theme": {
+                        "type": "string",
+                        "description": "The theme to set",
+                        "enum": ["light", "dark"]
+                    }
+                },
+                "required": ["theme"]
+            }),
+        },
+        FunctionDeclaration {
+            name: "open_app".to_string(),
+            description: "Open an app".to_string(),
+            parameters: json!({
+                "type": "object",
+                "properties": {
+                    "app_id": { "type": "string", "description": "The name of the app to open" }
+                },
+                "required": ["app_id"]
+            }),
+        },
+    ];
+    let tools = vec![Tools {
+        function_declarations: function_decs,
+    }];
 
-    let response = gemini_rs::chat("gemini-2.0-flash")
-        .to_json()
-        .response_schema(response_schema.clone())
-        .send_message(input)
-        .await?;
+    let client = gemini_rs::Client::instance();
+    let mut req = client.generate_content("gemini-2.0-flash");
 
-    if let Some(result) = &response.candidates[0].content.parts[0].text {
-        println!("Response: {}", result);
-        if result.contains("light") {
-            println!("Setting theme to light mode...");
-            set_theme(Theme::Light)?;
-        } else if result.contains("dark") {
-            println!("Setting theme to dark mode...");
-            set_theme(Theme::Dark)?;
-        } else {
-            println!("Unknown theme response.");
-        }
-    } else {
-        println!("No response found.");
+    req.tools(tools);
+    req.message(input);
+
+    let response = req.await;
+
+    // let mut req = GenerateContent::new("gemini-2.0-pro".into());
+    // req.body.tools = tools;
+    // req.message("Set the theme to dark.");
+    //
+    // let mut chat = gemini_rs::chat("gemini-2.0-flash")
+    //     .to_json()
+    //     .response_schema(response_schema.clone());
+    // let response = chat.send_message(input).await?;
+    match response {
+        Ok(resp) => match &resp.candidates[0].content.parts[0].function_call {
+            Some(func) => match func.name.as_str() {
+                "set_theme" => {
+                    let theme = func.args["theme"].as_str().unwrap();
+                    println!("Setting theme to {}", theme);
+                    windows::set_theme(if theme == "light" { Theme::Light } else { Theme::Dark })?;
+                }
+                "open_app" => {
+                    let app_id = func.args["app_id"].as_str().unwrap();
+                    println!("Opening app {}", app_id);
+                    windows::open_app(app_id)?;
+                }
+                _ => eprintln!("Unknown function: {}", func.name),
+            },
+            None => eprint!("Function not called"),
+        },
+        Err(e) => eprintln!("Error: {e}"),
     }
+    // if let Some(result) = &response.candidates[0].content.parts[0].text {
+    //     println!("Response: {}", result);
+    //     if result.contains("setThemeLight") {
+    //         println!("Setting theme to light mode...");
+    //         set_theme(Theme::Light)?;
+    //     } else if result.contains("setThemeDark") {
+    //         println!("Setting theme to dark mode...");
+    //         set_theme(Theme::Dark)?;
+    //     } else {
+    //         println!("Unknown theme response.");
+    //     }
+    // } else {
+    //     println!("No response found.");
+    // }
 
     Ok(())
 }
