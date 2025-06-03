@@ -1,7 +1,7 @@
 use gemini_rs::types::{FunctionDeclaration, Tools};
 use serde_json::json;
 
-use crate::windows::{self, Theme};
+use crate::windows::{self, Theme, get_volume};
 
 pub async fn prompt(input: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("Prompting: {}", input);
@@ -42,7 +42,23 @@ pub async fn prompt(input: &str) -> Result<(), Box<dyn std::error::Error>> {
                 },
                 "required": ["url"]
             }),
-        }
+        },
+        FunctionDeclaration {
+            name: "set_volume".to_string(),
+            description: format!("Set the system volume (Currently {})", get_volume()),
+            parameters: json!({
+                "type": "object",
+                "properties": {
+                    "volume": {
+                        "type": "integer",
+                        "description": "The volume level to set (0-100)",
+                        "minimum": 0,
+                        "maximum": 100
+                    }
+                },
+                "required": ["volume"]
+            }),
+        },
     ];
     let tools = vec![Tools {
         function_declarations: function_decs,
@@ -86,9 +102,14 @@ pub async fn prompt(input: &str) -> Result<(), Box<dyn std::error::Error>> {
                     println!("Opening website {}", url);
                     windows::open_app(url)?;
                 }
+                "set_volume" => {
+                    let volume = func.args["volume"].as_u64().unwrap() as u8;
+                    println!("Setting volume to {}", volume);
+                    windows::set_volume(volume)?;
+                }
                 _ => eprintln!("Unknown function: {}", func.name),
             },
-            None => eprint!("Function not called"),
+            None => eprintln!("Function not called"),
         },
         Err(e) => eprintln!("Error: {e}"),
     }
