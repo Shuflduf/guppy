@@ -7,4 +7,4 @@ import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 // See: https://v2.tauri.app/start/frontend/sveltekit/ for more info
 export const ssr = false;
 
-moveWindow(Position.TrayBottomCenter)
+moveWindow(Position.BottomCenter)

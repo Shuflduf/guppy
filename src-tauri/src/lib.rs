@@ -1,3 +1,6 @@
+use tauri::Manager;
+use tauri_plugin_positioner::{WindowExt, Position};
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -13,12 +16,8 @@ pub fn run() {
         .setup(|app| {
             #[cfg(desktop)]
             {
-              app.handle().plugin(tauri_plugin_positioner::init());
-                tauri::tray::TrayIconBuilder::new()
-                  .on_tray_icon_event(|tray_handle, event| {
-                    tauri_plugin_positioner::on_tray_event(tray_handle.app_handle(), &event);
-                  })
-                  .build(app)?;
+                let win = app.get_webview_window("main").unwrap();
+                let _ = win.as_ref().window().move_window(Position::BottomRight);
             }
             // notifs dont work
             use tauri_plugin_notification::NotificationExt;
