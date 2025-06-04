@@ -11,6 +11,15 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            #[cfg(desktop)]
+            {
+              app.handle().plugin(tauri_plugin_positioner::init());
+                tauri::tray::TrayIconBuilder::new()
+                  .on_tray_icon_event(|tray_handle, event| {
+                    tauri_plugin_positioner::on_tray_event(tray_handle.app_handle(), &event);
+                  })
+                  .build(app)?;
+            }
             // notifs dont work
             use tauri_plugin_notification::NotificationExt;
             app.notification()
