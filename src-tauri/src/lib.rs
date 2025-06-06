@@ -8,8 +8,15 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn prompt(name: &str) -> String {
-    format!("Hello, {}! You've been prompted from Rust!", name)
+async fn prompt_gemini(prompt: &str) -> Result<String, String> {
+    println!("Prompting Gemini with: {}", prompt);
+    Ok(
+    gemini_rs::chat("gemini-2.0-flash")
+        .send_message(prompt)
+        .await
+        .unwrap()
+        .to_string()
+    )
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -34,7 +41,7 @@ pub fn run() {
                 .unwrap();
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![greet, prompt_gemini])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
