@@ -2,6 +2,7 @@ import {
   getCurrentWindow,
   LogicalPosition,
   PhysicalPosition,
+  PhysicalSize,
 } from "@tauri-apps/api/window";
 import { animate } from "animejs";
 
@@ -30,27 +31,36 @@ export async function moveWindowBy(delta: PhysicalPosition) {
 
 export async function jump() {
   const { x: startX, y: startY } = await getCurrentWindow().outerPosition();
-  const position = { x: startX, y: startY };
+  const { width: startXScale, height: startYScale } = await getCurrentWindow().innerSize()
+  const transform = { x: startX, y: startY, sx: startXScale, sy: startYScale };
 
-  animate(position, {
-    x: startX - 400,
-    duration: 410,
-    ease: "linear",
-    onUpdate: () => {
-      getCurrentWindow().setPosition(
-        new PhysicalPosition(Math.round(position.x), Math.round(position.y)),
-      );
-    },
-  });
-  animate(position, {
+  animate(transform, {
     y: startY - 200,
+    sy: startYScale * 1.2,
+    sx: startXScale * 0.8,
     duration: 200,
     ease: "outQuad",
   }).then(() => {
-    animate(position, {
+    animate(transform, {
       y: startY,
+      sy: startYScale,
+      sx: startXScale,
       duration: 200,
       ease: "inQuad",
     });
+  });
+  animate(transform, {
+    x: startX - 400,
+    duration: 410,
+    ease: "linear",
+    onUpdate: async () => {
+      console.log(transform)
+      await getCurrentWindow().setPosition(
+        new PhysicalPosition(Math.round(transform.x), Math.round(transform.y)),
+      );
+      await getCurrentWindow().setSize(
+        new PhysicalSize(Math.round(transform.sx), Math.round(transform.sy))
+      )
+    },
   });
 }

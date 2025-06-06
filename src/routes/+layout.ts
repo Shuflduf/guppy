@@ -3,7 +3,7 @@
 // See: https://svelte.dev/docs/kit/single-page-apps
 
 import { jump, moveWindowBy } from "$lib/window";
-import { PhysicalPosition } from "@tauri-apps/api/window";
+import { getCurrentWindow, PhysicalPosition, PhysicalSize } from "@tauri-apps/api/window";
 import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 
 // See: https://v2.tauri.app/start/frontend/sveltekit/ for more info
@@ -13,6 +13,11 @@ moveWindow(Position.BottomRight);
 await moveWindowBy(new PhysicalPosition(400, 0));
 await jump();
 
+console.log(await getCurrentWindow().innerSize())
+
+// await getCurrentWindow().setSize(
+//   new PhysicalSize(30, 50)
+// )
 // setInterval(moveSlightly, 10)
 
 // setInterval(() => {
