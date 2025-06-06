@@ -2,7 +2,7 @@
 // so we use adapter-static with a fallback to index.html to put the site in SPA mode
 // See: https://svelte.dev/docs/kit/single-page-apps
 
-import { moveSmoothly, moveWindowBy } from "$lib/window";
+import { jump, moveWindowBy } from "$lib/window";
 import { PhysicalPosition } from "@tauri-apps/api/window";
 import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 
@@ -11,7 +11,7 @@ export const ssr = false;
 
 moveWindow(Position.BottomRight);
 await moveWindowBy(new PhysicalPosition(400, 0));
-await moveSmoothly();
+await jump();
 
 // setInterval(moveSlightly, 10)
 

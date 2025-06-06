@@ -28,7 +28,7 @@ export async function moveWindowBy(delta: PhysicalPosition) {
   getCurrentWindow().setPosition(newPosition);
 }
 
-export async function moveSmoothly() {
+export async function jump() {
   const { x: startX, y: startY } = await getCurrentWindow().outerPosition();
   const position = { x: startX, y: startY };
 

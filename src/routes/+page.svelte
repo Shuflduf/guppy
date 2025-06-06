@@ -1,6 +1,6 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
-  import { moveSmoothly, moveWindowBy } from "../lib/window";
+  import { moveWindowBy } from "../lib/window";
   import { onMount } from "svelte";
   import { PhysicalPosition } from "@tauri-apps/api/dpi";
 
