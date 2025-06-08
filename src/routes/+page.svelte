@@ -1,12 +1,11 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
-  import { moveWindowBy } from "../lib/window";
   import { onMount } from "svelte";
-  import { PhysicalPosition } from "@tauri-apps/api/dpi";
-    import { getCurrentWindow } from "@tauri-apps/api/window";
+  import { animate } from "animejs";
 
   let prompt = $state("");
   let response = $state("");
+  let pos = $state({x: -400, y: 0});
 
   async function submit(event: Event) {
     event.preventDefault();
@@ -14,34 +13,30 @@
     response = await invoke("prompt_gemini", { prompt });
   }
 
-  onMount(async () => {
-    // moveSmoothly();
-    // setInterval(async () => {
-    //   await moveWindowBy(new PhysicalPosition(1, 0));
-    // }, 1);
-    // for (let frame = 0; frame < 100; frame++) {
-    //   await moveWindowBy(new PhysicalPosition(0, (frame - 50)/2));
-    //   await new Promise((resolve) => setTimeout(resolve, 1));
-    // }
+  let lfjsd = $state({thing: 84})
+  onMount(() => {
+    animate(
+      pos,
+      {
+        x: 0,
+        y: 0,
+        duration: 3000,
+      },
+    );
   });
 </script>
 
-<main class="container border-4 border-yellow-200/80 h-[600px] fixed">
-  <img
-    data-tauri-drag-region
-    src="/gup.png"
-    alt="Gup"
-    class="fixed -z-10 w-1/2 h-1/2"
-  />
+<div class="border-4 border-yellow-200/80 h-[600px] fixed w-[400px]"></div>
+<section class="w-[400px] h-[300px] bottom-10 fixed" style="right: {pos.x}px;">
+  <img src="/gup.png" alt="Gup" class="-z-10" />
   <img
     src="/gup.png"
     alt="Gup"
-    class="fixed -z-20 w-full h-1/2 bottom-0 brightness-0 opacity-30 scale-x-90 blur-lg"
+    class="-z-30 relative w-full h-1/2 brightness-0 opacity-50 scale-x-90 -translate-y-full blur-lg"
   />
   <form
-    data-tauri-drag-region
     onsubmit={submit}
-    class="flex flex-col items-center gap-4 h-full justify-center px-4 fixed top-0 left-0 right-0 mx-12"
+    class="flex flex-col items-center gap-4 h-full justify-center px-12 absolute z-20 top-0 w-full"
   >
     <input
       placeholder="What do you need?"
@@ -51,4 +46,4 @@
     />
     <p class="text-white h-30 break-words overflow-y-auto">{response}</p>
   </form>
-</main>
+</section>
