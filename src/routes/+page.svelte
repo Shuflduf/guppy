@@ -3,6 +3,7 @@
   import { moveWindowBy } from "../lib/window";
   import { onMount } from "svelte";
   import { PhysicalPosition } from "@tauri-apps/api/dpi";
+    import { getCurrentWindow } from "@tauri-apps/api/window";
 
   let prompt = $state("");
   let response = $state("");
@@ -25,12 +26,12 @@
   });
 </script>
 
-<main class="container">
+<main class="container border-4 border-yellow-200/80 h-[600px] fixed">
   <img
     data-tauri-drag-region
     src="/gup.png"
     alt="Gup"
-    class="fixed -z-10 w-full h-full"
+    class="fixed -z-10 w-1/2 h-1/2"
   />
   <img
     src="/gup.png"

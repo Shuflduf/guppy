@@ -9,11 +9,13 @@ import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 // See: https://v2.tauri.app/start/frontend/sveltekit/ for more info
 export const ssr = false;
 
-moveWindow(Position.BottomRight);
-await moveWindowBy(new PhysicalPosition(400, 0));
-await jump();
+// getCurrentWindow().setIgnoreCursorEvents(true);
 
-console.log(await getCurrentWindow().innerSize())
+moveWindow(Position.BottomRight);
+// await moveWindowBy(new PhysicalPosition(400, 0));
+// await jump();
+
+// console.log(await getCurrentWindow().innerSize())
 
 // await getCurrentWindow().setSize(
 //   new PhysicalSize(30, 50)
