@@ -5,7 +5,7 @@
 
   let prompt = $state("");
   let response = $state("");
-  let pos = $state({x: -400, y: 0});
+  let pos = $state({x: -400, y: 40});
 
   async function submit(event: Event) {
     event.preventDefault();
@@ -13,21 +13,23 @@
     response = await invoke("prompt_gemini", { prompt });
   }
 
-  let lfjsd = $state({thing: 84})
   onMount(() => {
     animate(
       pos,
       {
         x: 0,
-        y: 0,
-        duration: 3000,
+        y: [
+          { to: 200, ease: "outQuad" },
+          { to: 40, ease: "inQuad" },
+        ],
+        duration: 799,
       },
     );
   });
 </script>
 
-<div class="border-4 border-yellow-200/80 h-[600px] fixed w-[400px]"></div>
-<section class="w-[400px] h-[300px] bottom-10 fixed" style="right: {pos.x}px;">
+<div class="h-[600px] fixed w-[400px]"></div>
+<section class="w-[400px] h-[300px] fixed" style="right: {pos.x}px; bottom: {pos.y}px;">
   <img src="/gup.png" alt="Gup" class="-z-10" />
   <img
     src="/gup.png"
