@@ -12,6 +12,16 @@ export const ssr = false;
 // getCurrentWindow().setIgnoreCursorEvents(true);
 
 moveWindow(Position.BottomRight);
+
+getCurrentWindow().onFocusChanged(({ payload: focused }) => {
+  if (!focused) {
+    moveWindow(Position.BottomRight);
+    moveWindowBy(new PhysicalPosition(500, 0));
+  }
+  else {
+    moveWindow(Position.BottomRight);
+  }
+});
 // await moveWindowBy(new PhysicalPosition(400, 0));
 // await jump();
 
