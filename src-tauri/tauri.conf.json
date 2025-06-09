@@ -17,6 +17,8 @@
         "dragDropEnabled": false,
         "alwaysOnTop": true,
         "preventOverflow": true,
+        "resizable": false,
+        "maximizable": false,
         "title": "guppy",
         "width": 400,
         "height": 600
