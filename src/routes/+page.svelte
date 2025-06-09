@@ -6,7 +6,7 @@
 
   let prompt = $state("");
   let response = $state("");
-  let pos = $state({ x: -400, y: 40, h: 300, w: 400 });
+  let pos = $state({ x: -400, y: 40, h: 1.0, w: 1.0, r: 0.0 });
 
   async function submit(event: Event) {
     event.preventDefault();
@@ -23,18 +23,25 @@
     animate(pos, {
       x: [
         { to: -400, duration: 0 },
-        { to: 0, ease: "linear", duration: 800 },
+        { to: 0, ease: "outCubic", duration: 800 },
       ],
       y: [
         { to: 200, ease: "outQuad", duration: 400 },
         { to: 40, ease: "inQuad", duration: 400 },
       ],
       h: [
-        { to: 300, duration: 0 },
-        { to: 450, ease: "inQuad", duration: 200 },
-        { to: 300, ease: "outQuad", duration: 200 },
+        { to: 1.4, duration: 0 },
+        { to: 1.0, ease: "outQuad", duration: 600 },
       ],
-
+      w: [
+        { to: 0.6, duration: 0 },
+        { to: 1.0, ease: "outQuad", duration: 600 },
+      ],
+      r: [
+        { to: 20, duration: 0 },
+        { to: -20, ease: "outQuad", duration: 200 },
+        { to: 0, ease: "inQuad", duration: 400 },
+      ],
       onUpdate: () => {
         console.log("Position updated:", pos);
       }
@@ -44,14 +51,14 @@
 
 <div class="h-[600px] fixed w-[400px] border"></div>
 <section
-  class="fixed"
+  class="fixed h-[300px] w-[400px]"
   style="right: {pos.x}px; bottom: {pos.y}px;"
 >
   <div class="relative left-0 z-30 text-white flex flex-row gap-4">
     <h1 data-tauri-drag-region>M</h1>
     <button onclick={reset}>R</button>
   </div>
-  <img src="/gup.png" alt="Gup" class="-z-10" />
+  <img src="/gup.png" alt="Gup" class="-z-10" style="scale: {pos.w} {pos.h}; rotate: {pos.r}deg"/>
   <img
     src="/gup.png"
     alt="Gup"
