@@ -1,3 +1,5 @@
+use gemini_rs::types::{Content, Part};
+use serde_json::Value;
 use tauri::Manager;
 use tauri_plugin_positioner::{WindowExt, Position};
 
@@ -8,14 +10,37 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-async fn prompt_gemini(prompt: &str) -> Result<String, String> {
-    println!("Prompting Gemini with: {}", prompt);
+async fn prompt_gemini(chat_history: &str) -> Result<String, String> {
+    println!("Prompting Gemini with: {:?}", chat_history);
+    let chat_history_parsed: Vec<serde_json::Value> = serde_json::from_str(chat_history).unwrap();
+
+    let mut history: Vec<Content> = chat_history_parsed
+        .iter()
+        .map(|v| {
+            Content {
+                role: if v.get("role").and_then(Value::as_str) == Some("user") {
+                    gemini_rs::types::Role::User
+                } else {
+                    gemini_rs::types::Role::Model
+                },
+                parts: vec![Part {
+                    text: Some(v.get("content").and_then(Value::as_str).unwrap_or("").to_string()),
+                    ..Default::default()
+                }]
+            }
+        })
+        .collect();
+    let prompt = history.pop().unwrap().parts[0].text.clone().unwrap();
+
+    println!("Parsed chat history: {:?}", history);
+    let mut chat = gemini_rs::chat("gemini-2.0-flash");
+    *chat.history_mut() = history;
     Ok(
-    gemini_rs::chat("gemini-2.0-flash")
-        .send_message(prompt)
-        .await
-        .unwrap()
-        .to_string()
+        chat
+            .send_message(&prompt)
+            .await
+            .unwrap()
+            .to_string()
     )
 }
 

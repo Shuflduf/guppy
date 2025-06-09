@@ -9,6 +9,7 @@
   let responseHTML = $state("");
   const startPos = { x: 0, y: 60, h: 1.0, w: 1.0, r: 0.0 };
   let pos = $state(startPos);
+  let chatHistory: { role: string; content: string }[] = $state([]);
 
   async function submit(event: Event) {
     event.preventDefault();
@@ -27,12 +28,14 @@
         { to: 0.9, duration: 50 },
         { to: 1.0, ease: "inOutQuad", duration: 600 },
       ],
-      loop: true
+      loop: true,
     });
-    let response: string = await invoke("prompt_gemini", { prompt });
+    chatHistory.push({ role: "user", content: prompt });
+    let response: string = await invoke("prompt_gemini", { chatHistory: JSON.stringify(chatHistory) });
+    chatHistory.push({ role: "model", content: response });
     prompt = "";
     responseHTML = await marked.parse(response);
-    jumping.cancel()
+    jumping.cancel();
     pos = startPos;
   }
 
@@ -77,7 +80,7 @@
   >
     {@html responseHTML}
   </div>
-  <button onclick={responseHTML=""} class="fixed top-4 right-4">X</button>
+  <button onclick={(responseHTML = "")} class="fixed top-4 right-4">X</button>
 {/if}
 <section
   class="fixed h-[300px] w-[400px]"
