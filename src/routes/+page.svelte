@@ -3,18 +3,37 @@
   import { onMount } from "svelte";
   import { animate } from "animejs";
   import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
-    import { marked } from "marked";
+  import { marked } from "marked";
 
   let prompt = $state("");
-  let response = $state("");
   let responseHTML = $state("");
-  let pos = $state({ x: -400, y: 60, h: 1.0, w: 1.0, r: 0.0 });
+  const startPos = { x: 0, y: 60, h: 1.0, w: 1.0, r: 0.0 };
+  let pos = $state(startPos);
 
   async function submit(event: Event) {
     event.preventDefault();
+    responseHTML = "";
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    response = await invoke("prompt_gemini", { prompt });
+    let jumping = animate(pos, {
+      y: [
+        { to: 100, ease: "outQuad", duration: 400 },
+        { to: 60, ease: "inQuad", duration: 400 },
+      ],
+      h: [
+        { to: 1.05, duration: 50 },
+        { to: 1.0, ease: "inOutQuad", duration: 600 },
+      ],
+      w: [
+        { to: 0.9, duration: 50 },
+        { to: 1.0, ease: "inOutQuad", duration: 600 },
+      ],
+      loop: true
+    });
+    let response: string = await invoke("prompt_gemini", { prompt });
+    prompt = "";
     responseHTML = await marked.parse(response);
+    jumping.cancel()
+    pos = startPos;
   }
 
   onMount(() => {
@@ -46,13 +65,20 @@
       ],
       onUpdate: () => {
         console.log("Position updated:", pos);
-      }
+      },
     });
   }
 </script>
 
 <div class="h-[600px] fixed w-[400px] border"></div>
-<div class="fixed h-[250px] w-full bg-yellow-200/70 p-4 rounded-lg prose overflow-y-auto scrollbar-hidden backdrop-blur-md">{@html responseHTML}</div>
+{#if responseHTML}
+  <div
+    class="fixed h-[250px] w-full bg-yellow-200/70 p-4 rounded-lg prose overflow-y-auto scrollbar-hidden backdrop-blur-md"
+  >
+    {@html responseHTML}
+  </div>
+  <button onclick={responseHTML=""} class="fixed top-4 right-4">X</button>
+{/if}
 <section
   class="fixed h-[300px] w-[400px]"
   style="right: {pos.x}px; bottom: {pos.y}px;"
@@ -61,7 +87,12 @@
     <h1 data-tauri-drag-region>M</h1>
     <button onclick={reset}>R</button>
   </div>
-  <img src="/gup.png" alt="Gup" class="-z-10" style="scale: {pos.w} {pos.h}; rotate: {pos.r}deg"/>
+  <img
+    src="/gup.png"
+    alt="Gup"
+    class="-z-10"
+    style="scale: {pos.w} {pos.h}; rotate: {pos.r}deg"
+  />
   <img
     src="/gup.png"
     alt="Gup"
