@@ -1,6 +1,8 @@
-use gemini_rs::types::{Content, Part};
+use std::fs;
+
+use gemini_rs::types::{Content, FileData, InlineData, Part};
 use serde_json::Value;
-use tauri::Manager;
+use tauri::{menu::ContextMenu, Manager};
 use tauri_plugin_positioner::{WindowExt, Position};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -11,7 +13,6 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 async fn prompt_gemini(chat_history: &str) -> Result<String, String> {
-    println!("Prompting Gemini with: {:?}", chat_history);
     let chat_history_parsed: Vec<serde_json::Value> = serde_json::from_str(chat_history).unwrap();
 
     let mut history: Vec<Content> = chat_history_parsed
@@ -31,12 +32,28 @@ async fn prompt_gemini(chat_history: &str) -> Result<String, String> {
         })
         .collect();
     let prompt = history.pop().unwrap().parts[0].text.clone().unwrap();
-
-    println!("Parsed chat history: {:?}", history);
+    let file_data = InlineData {
+        mime_type: "application/xml".to_string(),
+        data: fs::read_to_string("ror2.xml").unwrap()
+    };
+    history.insert(0,
+        Content {
+            role: gemini_rs::types::Role::User,
+            parts: vec![Part {
+                inline_data: Some(file_data),
+                // text: Some(
+                //     fs::read_to_string("ror2.xml").unwrap()
+                // ),
+                ..Default::default()
+            }],
+        }
+    );
     let mut chat = gemini_rs::chat("gemini-2.0-flash");
+    // chat.system_instruction("You are Guppy, the Gup digital assistant.")
     *chat.history_mut() = history;
     Ok(
         chat
+            .system_instruction("You are Guppy, the Gup digital assistant.")
             .send_message(&prompt)
             .await
             .unwrap()

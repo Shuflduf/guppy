@@ -10,10 +10,13 @@
   const startPos = { x: 0, y: 60, h: 1.0, w: 1.0, r: 0.0 };
   let pos = $state(startPos);
   let chatHistory: { role: string; content: string }[] = $state([]);
+  const keepHistory = $state(false);
 
   async function submit(event: Event) {
     event.preventDefault();
-    responseHTML = "";
+    if (!keepHistory) {
+      responseHTML = "";
+    }
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
     let jumping = animate(pos, {
       y: [
@@ -31,10 +34,13 @@
       loop: true,
     });
     chatHistory.push({ role: "user", content: prompt });
-    let response: string = await invoke("prompt_gemini", { chatHistory: JSON.stringify(chatHistory) });
+    let response: string = await invoke("prompt_gemini", {
+      chatHistory: JSON.stringify(chatHistory),
+    });
     chatHistory.push({ role: "model", content: response });
     prompt = "";
-    responseHTML = await marked.parse(response);
+    responseHTML += await marked.parse(response);
+    responseHTML += "<hr>";
     jumping.cancel();
     pos = startPos;
   }
@@ -66,27 +72,29 @@
         { to: -20, duration: 0 },
         { to: 0, ease: "inQuad", duration: 600 },
       ],
-      onUpdate: () => {
-        console.log("Position updated:", pos);
-      },
     });
+  }
+
+  function resetAI() {
+    chatHistory = [];
+    responseHTML = "";
   }
 </script>
 
-<div class="h-[600px] fixed w-[400px] border"></div>
+<div class="fixed h-[600px] w-[400px] border"></div>
 {#if responseHTML}
   <div
-    class="fixed h-[250px] w-full bg-yellow-200/70 p-4 rounded-lg prose overflow-y-auto scrollbar-hidden backdrop-blur-md"
+    class="prose scrollbar-hidden fixed h-[250px] w-full overflow-y-auto rounded-lg bg-yellow-200/70 p-4 backdrop-blur-md"
   >
     {@html responseHTML}
   </div>
-  <button onclick={(responseHTML = "")} class="fixed top-4 right-4">X</button>
+  <button onclick={resetAI} class="fixed top-4 right-4">X</button>
 {/if}
 <section
   class="fixed h-[300px] w-[400px]"
   style="right: {pos.x}px; bottom: {pos.y}px;"
 >
-  <div class="relative left-10 top-10 z-30 text-white flex flex-row gap-4">
+  <div class="relative top-10 left-10 z-30 flex flex-row gap-4 text-white">
     <h1 data-tauri-drag-region>M</h1>
     <button onclick={reset}>R</button>
   </div>
@@ -99,16 +107,16 @@
   <img
     src="/gup.png"
     alt="Gup"
-    class="-z-30 relative w-full h-1/2 brightness-0 opacity-50 scale-x-90 -translate-y-full blur-lg"
+    class="relative -z-30 h-1/2 w-full -translate-y-full scale-x-90 opacity-50 blur-lg brightness-0"
   />
   <form
     onsubmit={submit}
-    class="flex flex-col items-center gap-4 h-full justify-center px-12 absolute z-20 top-12 w-full"
+    class="absolute top-12 z-20 flex h-full w-full flex-col items-center justify-center gap-4 px-12"
   >
     <input
       placeholder="What do you need?"
       bind:value={prompt}
-      class="p-2 px-4 bg-yellow-200/70 rounded-lg outline-none backdrop-blur-xs"
+      class="rounded-lg bg-yellow-200/70 p-2 px-4 backdrop-blur-xs outline-none"
       onsubmit={submit}
     />
     <!-- <p class="text-white h-30 break-words overflow-y-auto">{response}</p> -->
