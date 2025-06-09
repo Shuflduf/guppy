@@ -2,10 +2,11 @@
   import { invoke } from "@tauri-apps/api/core";
   import { onMount } from "svelte";
   import { animate } from "animejs";
+  import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 
   let prompt = $state("");
   let response = $state("");
-  let pos = $state({x: -400, y: 40});
+  let pos = $state({ x: -400, y: 40, h: 300, w: 400 });
 
   async function submit(event: Event) {
     event.preventDefault();
@@ -14,22 +15,42 @@
   }
 
   onMount(() => {
-    animate(
-      pos,
-      {
-        x: 0,
-        y: [
-          { to: 200, ease: "outQuad" },
-          { to: 40, ease: "inQuad" },
-        ],
-        duration: 799,
-      },
-    );
+    reset();
   });
+
+  function reset() {
+    moveWindow(Position.BottomRight);
+    animate(pos, {
+      x: [
+        { to: -400, duration: 0 },
+        { to: 0, ease: "linear", duration: 800 },
+      ],
+      y: [
+        { to: 200, ease: "outQuad", duration: 400 },
+        { to: 40, ease: "inQuad", duration: 400 },
+      ],
+      h: [
+        { to: 300, duration: 0 },
+        { to: 450, ease: "inQuad", duration: 200 },
+        { to: 300, ease: "outQuad", duration: 200 },
+      ],
+
+      onUpdate: () => {
+        console.log("Position updated:", pos);
+      }
+    });
+  }
 </script>
 
-<div class="h-[600px] fixed w-[400px]"></div>
-<section class="w-[400px] h-[300px] fixed" style="right: {pos.x}px; bottom: {pos.y}px;">
+<div class="h-[600px] fixed w-[400px] border"></div>
+<section
+  class="fixed"
+  style="right: {pos.x}px; bottom: {pos.y}px;"
+>
+  <div class="relative left-0 z-30 text-white flex flex-row gap-4">
+    <h1 data-tauri-drag-region>M</h1>
+    <button onclick={reset}>R</button>
+  </div>
   <img src="/gup.png" alt="Gup" class="-z-10" />
   <img
     src="/gup.png"
