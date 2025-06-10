@@ -1465,6 +1465,7 @@ name = "guppy"
 version = "1.0.0"
 dependencies = [
  "gemini-rs",
+ "reqwest",
  "serde",
  "serde_json",
  "tauri",

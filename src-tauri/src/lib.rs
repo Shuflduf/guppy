@@ -2,8 +2,10 @@ use std::fs;
 
 use gemini_rs::types::{Content, FileData, InlineData, Part};
 use serde_json::Value;
-use tauri::{menu::ContextMenu, Manager};
+use tauri::Manager;
 use tauri_plugin_positioner::{WindowExt, Position};
+
+mod gemini_files;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -13,6 +15,9 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 async fn prompt_gemini(chat_history: &str) -> Result<String, String> {
+    gemini_files::upload_from_path("").await;
+    return Ok(String::from("kjhajdhkjfh"));
+
     let chat_history_parsed: Vec<serde_json::Value> = serde_json::from_str(chat_history).unwrap();
 
     let mut history: Vec<Content> = chat_history_parsed
@@ -40,7 +45,11 @@ async fn prompt_gemini(chat_history: &str) -> Result<String, String> {
         Content {
             role: gemini_rs::types::Role::User,
             parts: vec![Part {
-                inline_data: Some(file_data),
+                file_data: Some(FileData {
+                    file_uri: "https://raw.githubusercontent.com/Shuflduf/guppy/243a6485c5a82b4d8b2c3af0b4a18c3718629915/src-tauri/ror2.xml".to_string(),
+                    mime_type: "application/xml".to_string()
+                }),
+                // inline_data: Some(file_data),
                 // text: Some(
                 //     fs::read_to_string("ror2.xml").unwrap()
                 // ),
