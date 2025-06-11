@@ -15,8 +15,7 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 async fn prompt_gemini(chat_history: &str) -> Result<String, String> {
-    gemini_files::upload_from_path("").await;
-    return Ok(String::from("kjhajdhkjfh"));
+    let file_uri = gemini_files::upload_from_path("").await;
 
     let chat_history_parsed: Vec<serde_json::Value> = serde_json::from_str(chat_history).unwrap();
 
@@ -37,22 +36,15 @@ async fn prompt_gemini(chat_history: &str) -> Result<String, String> {
         })
         .collect();
     let prompt = history.pop().unwrap().parts[0].text.clone().unwrap();
-    let file_data = InlineData {
-        mime_type: "application/xml".to_string(),
-        data: fs::read_to_string("ror2.xml").unwrap()
-    };
+
     history.insert(0,
         Content {
             role: gemini_rs::types::Role::User,
             parts: vec![Part {
                 file_data: Some(FileData {
-                    file_uri: "https://raw.githubusercontent.com/Shuflduf/guppy/243a6485c5a82b4d8b2c3af0b4a18c3718629915/src-tauri/ror2.xml".to_string(),
+                    file_uri,
                     mime_type: "application/xml".to_string()
                 }),
-                // inline_data: Some(file_data),
-                // text: Some(
-                //     fs::read_to_string("ror2.xml").unwrap()
-                // ),
                 ..Default::default()
             }],
         }

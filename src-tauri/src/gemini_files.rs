@@ -45,5 +45,12 @@ pub async fn upload_from_path(path: &str) -> String {
         .take()
         .to_string();
 
+    let res = client
+        .get(format!("https://generativelanguage.googleapis.com/v1beta/files?key={}", env::var("GEMINI_API_KEY").unwrap()))
+        .send()
+        .await
+        .unwrap();
+
+    println!("{:?}", res);
     file_uri
 }
