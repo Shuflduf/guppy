@@ -8,6 +8,7 @@ pub async fn upload_from_path(path: &str) -> String {
     let num_bytes = file.len();
 
     let client = Client::new();
+    println!("Preparing to upload file");
     let res = client.post(
         format!("https://generativelanguage.googleapis.com/upload/v1beta/files?key={}",
             std::env::var("GEMINI_API_KEY").unwrap()
@@ -22,6 +23,8 @@ pub async fn upload_from_path(path: &str) -> String {
         .await
         .unwrap();
 
+    println!("{:?}", res);
+    println!("Headers: {:?}", res.headers());
     let upload_uri = res
         .headers()
         .get("x-goog-upload-url")
@@ -29,6 +32,7 @@ pub async fn upload_from_path(path: &str) -> String {
         .to_str()
         .unwrap();
 
+    println!("Uploading file to {}", upload_uri);
     let res = client
         .post(upload_uri)
         .header("Content-Length", num_bytes)
@@ -44,13 +48,17 @@ pub async fn upload_from_path(path: &str) -> String {
         ["file"]["uri"]
         .take()
         .to_string();
+    println!("File uploaded to: {}", file_uri);
 
+    println!("Fetching file list to confirm upload");
     let res = client
         .get(format!("https://generativelanguage.googleapis.com/v1beta/files?key={}", env::var("GEMINI_API_KEY").unwrap()))
         .send()
         .await
         .unwrap();
 
-    println!("{:?}", res);
+
+    println!("File list response: {}", res.text().await.unwrap());
+    // println!(" {:?}", res);
     file_uri
 }
